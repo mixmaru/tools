@@ -58,14 +58,7 @@ if [ "${mode}" = "unset" ];then
     exit 0;
 fi
 
-case "${mode}" in
-  "move"    ) move ${project};;
-  "add"     ) add ${project};;
-  "modify"  ) modify ${project};;
-  "delete"  ) delete ${project};;
-esac
-
-
+${mode} ${project}
 
 #project_name=$1
 #

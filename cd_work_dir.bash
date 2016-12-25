@@ -38,7 +38,7 @@ error=
 
 #関数の定義
 #排他ロック。参考）http://qiita.com/hidetzu/items/11f92f941efbb182f757
-function lock(){
+function cdwkdir_lock(){
     local is_lock="no"
     ln -s ${SCRIPT_FILE} ${LOCK_FILE} 2> /dev/null || is_lock="yes"
     if [ ${is_lock} = "yes" ]; then
@@ -49,7 +49,7 @@ function lock(){
 }
 
 #カレントディレクトリの移動
-function move(){
+function cdwkdir_move(){
     #指定プロジェクトの行数を取得
     local count_command="cat ${PROJECT_LIST_FILE} | awk 'BEGIN{count=0} \$1==\"${project_name}\"{count+=1} END{print count}'"
     local count=$(eval ${count_command})
@@ -70,7 +70,7 @@ function move(){
 }
 
 #プロジェクトパスデータの追加
-function add(){
+function cdwkdir_add(){
     #存在しないかチェック
     local tmp_command="cat ${PROJECT_LIST_FILE} | awk '\$1==\"${project_name}\"{print \$1}'"
     local result=($(eval ${tmp_command}))
@@ -85,7 +85,7 @@ function add(){
 }
 
 #プロジェクト削除 delete プロジェクト名
-function delete(){
+function cdwkdir_delete(){
     local tmp_command="cat ${PROJECT_LIST_FILE} | awk '\$1!=\"${project_name}\"{print \$0}'"
 
     #指定プロジェクトを除去した設定ファイルの一時ファイルを作成
@@ -108,19 +108,19 @@ function delete(){
 #getOption $2 $3
 function getOption(){
     if [ -n "$1" ] && [ -z "$2" ]; then
-        mode="move"
+        mode="cdwkdir_move"
         project_name=$1
     elif [ -n "$1" ] && [ -n "$2" ]; then
         case "$1" in
             "add"       )
                 if [ -n "$3" ];then
-                    mode="add"
+                    mode="cdwkdir_add"
                     project_name=$2
                     project_path=$3
                 fi
                 ;;
             "delete"    )
-                mode="delete"
+                mode="cdwkdir_delete"
                 project_name=$2
                 ;;
         esac
@@ -133,7 +133,7 @@ function getOption(){
 }
 
 #排他ロック
-lock
+cdwkdir_lock
 if [ $? -eq 0 ]; then
     #設定ファイル等がなければ作成する
     if [ ! -d  ${WORK_DIR} ];then
@@ -172,3 +172,9 @@ mode=${TMP_CD_WORK_DIR_mode}
 project_name=${TMP_CD_WORK_DIR_project_name}
 project_path=${TMP_CD_WORK_DIR_project_path}
 error=${TMP_CD_WORK_DIR_error}
+
+#定義関数の削除
+unset -f cdwkdir_lock
+unset -f cdwkdir_move
+unset -f cdwkdir_add
+unset -f cdwkdir_delete

@@ -3,6 +3,16 @@
 #cartプロジェクトへ移動する場合
 #. ./cd_work_dir.bash ~/Dropbox/tools/cd_work_dir.bash cart
 
+#ここで使用するすべてのグローバル変数は同名の変数が指定されている場合を考慮して、
+#内容を一旦既存内容を別変数に保存してから定義する。
+#スクリプト終了時に別変数から書き戻す。
+TMP_CD_WORK_DIR_SCRIPT_DIR=${SCRIPT_DIR}
+TMP_CD_WORK_DIR_SCRIPT_FILE=${SCRIPT_FILE}
+TMP_CD_WORK_DIR_LOCK_FILE=${LOCK_FILE}
+TMP_CD_WORK_DIR_WORK_DIR=${WORK_DIR}
+TMP_CD_WORK_DIR_PROJECT_LIST_FILE=${PROJECT_LIST_FILE}
+TMP_CD_WORK_DIR_PROJECT_TMP_FILE=${PROJECT_TMP_FILE}
+
 #使用するファイルのパスを用意
 #スクリプトがあるディレクトリ
 SCRIPT_DIR=$(cd $(dirname $1) && pwd)/
@@ -150,3 +160,11 @@ if [ $? -eq 0 ]; then
 else
     echo "多重起動防止"
 fi
+
+#既存変数の書き戻し
+SCRIPT_DIR=${TMP_CD_WORK_DIR_SCRIPT_DIR}
+SCRIPT_FILE=${TMP_CD_WORK_DIR_SCRIPT_FILE}
+LOCK_FILE=${TMP_CD_WORK_DIR_LOCK_FILE}
+WORK_DIR=${TMP_CD_WORK_DIR_WORK_DIR}
+PROJECT_LIST_FILE=${TMP_CD_WORK_DIR_PROJECT_LIST_FILE}
+PROJECT_TMP_FILE=${TMP_CD_WORK_DIR_PROJECT_TMP_FILE}

@@ -53,21 +53,36 @@ function move(){
     cd ${target_path}
 }
 
+#プロジェクトパスデータの追加 add 追加プロジェクト名 パス
+function add(){
+    local name=$1
+    local path=$2
+    #存在しないかチェック
+    local tmp_command="cat ${setting_file} | awk '\$1==\"${name}\"{print \$1}'"
+    local result=($(eval ${tmp_command}))
+    if [ ${#result[@]} -eq 0 ];then
+        #追加処理
+        echo "${name} ${path}" >> ${setting_file}
+        return 0
+    else
+        error="すでに${name}が存在します"
+        return 1
+    fi
+}
 #メインの第2引数と第三引数を見てmodeとprojectをセットする
 #getOption $2 $3
 function getOption(){
     if [ -n "$1" ] && [ -z "$2" ]; then
         mode="move"
         project=$1
-    elif [ -z "$1" ] && [ -z "$2" ]; then
+    elif [ -n "$1" ] && [ -n "$2" ]; then
         case "$1" in
             "add"       )
-                mode="add"
-                project=$2
-                ;;
-            "modify"    )
-                mode="modify"
-                project=$2
+                if [ -n "$3" ];then
+                    mode="add"
+                    project=$2
+                    project_path=$3
+                fi
                 ;;
             "delete"    )
                 mode="delete"
@@ -85,12 +100,10 @@ function getOption(){
 lock ${script_file}
 if [ $? -eq 0 ]; then
     #引数からmodeとprojectを取得。エラーならerrorにメッセージを挿入
-    getOption $2 $3
-    echo ${mode}
-    echo ${project}
+    getOption $2 $3 $4
     if [ $? -eq 0 ];then
         #メイン処理実行
-       ${mode} ${project}
+       ${mode} ${project} ${project_path}
     fi
 
     #エラーがあればメッセージを出す

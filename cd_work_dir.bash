@@ -2,18 +2,9 @@
 
 #プロジェクト作業ルートディレクトリへ移動するためのスクリプト
 
-#プロジェクトディレクトリへ移動
-#. ./cd_work_dir.bash ./cd_work_dir.bash mv プロジェクト名
-#プロジェクトを追加
-#. ./cd_work_dir.bash ./cd_work_dir.bash add プロジェクト名 作業ディレクトリパス
-#プロジェクト削除
-#. ./cd_work_dir.bash ./cd_work_dir.bash delete プロジェクト名
-#プロジェクト一覧表示
-#. ./cd_work_dir.bash ./cd_work_dir.bash list
-
 #.bashrcに
 # alias cdwkdir='. /some_dir/cd_work_dir.bash /some_dir/cd_work_dir.bash'
-# を記入しておくと以下のように使用できる
+# を記入しておき、以下のように使用する
 #プロジェクトディレクトリへ移動
 # cdwkdir mv プロジェクト名
 #プロジェクトを追加

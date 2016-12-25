@@ -76,7 +76,9 @@ function cdwkdir_add(){
     local result=($(eval ${tmp_command}))
     if [ ${#result[@]} -eq 0 ];then
         #追加処理
-        echo "${project_name} ${project_path}" >> ${PROJECT_LIST_FILE}
+        #相対パスを絶対パスに変換して追記
+        local path=$(cd ${project_path}; pwd)/
+        echo "${project_name} ${path}" >> ${PROJECT_LIST_FILE}
         return 0
     else
         error="すでに${project_name}が存在します"

@@ -13,6 +13,8 @@ lock_file=${script_dir}.cdwkdirlock
 work_dir=${script_dir}.cdwkdir/
 #設定ファイル
 setting_file=${work_dir}config
+#一時保存ファイル
+setting_tmp_file=${work_dir}config_tmp
 
 #使用する変数
 mode=
@@ -66,6 +68,27 @@ function add(){
         return 0
     else
         error="すでに${name}が存在します"
+        return 1
+    fi
+}
+
+#プロジェクト削除 delete プロジェクト名
+function delete(){
+    local name=$1
+    local tmp_command="cat ${setting_file} | awk '\$1!=\"${name}\"{print \$0}'"
+
+    #指定プロジェクトを除去した設定ファイルの一時ファイルを作成
+    eval ${tmp_command} > ${setting_tmp_file}
+    #元ファイルと比較して、変更があれば元ファイルを上書きする
+    local tmp_command="diff ${setting_file} ${setting_tmp_file}"
+    local diff_res=$(eval ${tmp_command})
+
+    if [ -n "${diff_res}" ];then
+        cat ${setting_tmp_file} > ${setting_file}
+        rm ${setting_tmp_file}
+        return 0
+    else
+        error="${name}は存在しません"
         return 1
     fi
 }

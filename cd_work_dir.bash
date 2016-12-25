@@ -6,6 +6,7 @@
 #使用するファイルのパスを用意
 #スクリプトがあるディレクトリ
 script_dir=$(cd $(dirname $1) && pwd)/
+script_file=${script_dir}cd_work_dir.bash
 #ロック用ファイル
 lock_file=${script_dir}.cdwkdirlock
 #設定ファイルディレクトリ
@@ -81,7 +82,7 @@ function getOption(){
     fi
 }
 
-lock
+lock ${script_file}
 if [ $? -eq 0 ]; then
     #引数からmodeとprojectを取得。エラーならerrorにメッセージを挿入
     getOption $2 $3

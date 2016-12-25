@@ -1,7 +1,28 @@
 #!/bin/bash
 
-#cartプロジェクトへ移動する場合
-#. ./cd_work_dir.bash ~/Dropbox/tools/cd_work_dir.bash cart
+#プロジェクト作業ルートディレクトリへ移動するためのスクリプト
+
+#プロジェクトディレクトリへ移動
+#. ./cd_work_dir.bash ./cd_work_dir.bash mv プロジェクト名
+#プロジェクトを追加
+#. ./cd_work_dir.bash ./cd_work_dir.bash add プロジェクト名 作業ディレクトリパス
+#プロジェクト削除
+#. ./cd_work_dir.bash ./cd_work_dir.bash delete プロジェクト名
+#プロジェクト一覧表示
+#. ./cd_work_dir.bash ./cd_work_dir.bash list
+
+#.bashrcに
+# alias cdwkdir='. /some_dir/cd_work_dir.bash /some_dir/cd_work_dir.bash'
+# を記入しておくと以下のように使用できる
+#プロジェクトディレクトリへ移動
+# cdwkdir mv プロジェクト名
+#プロジェクトを追加
+#. ./cd_work_dir.bash このスクリプトのパスを指定 add プロジェクト名 作業ディレクトリパス
+# cdwkdir add プロジェクト名 作業ディレクトリパス
+#プロジェクト削除
+# cdwkdir delete プロジェクト名
+#プロジェクト一覧表示
+# cdwkdir list
 
 #ここで使用するすべてのグローバル変数は同名の変数が指定されている場合を考慮して、
 #内容を一旦既存内容を別変数に保存してから定義する。

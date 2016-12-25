@@ -120,7 +120,17 @@ function getOption(){
     fi
 }
 
+#排他ロック
 lock ${script_file}
+
+#設定ファイル等がなければ作成する
+if [ ! -d  ${work_dir} ];then
+    mkdir ${work_dir}
+fi
+if [ ! -e ${setting_file} ]; then
+    touch ${setting_file}
+fi
+
 if [ $? -eq 0 ]; then
     #引数からmodeとprojectを取得。エラーならerrorにメッセージを挿入
     getOption $2 $3 $4

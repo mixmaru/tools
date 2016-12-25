@@ -104,30 +104,43 @@ function cdwkdir_delete(){
         return 1
     fi
 }
+
+#プロジェクト一覧表示
+function cdwkdir_list(){
+    local tmp_command="cat ${PROJECT_LIST_FILE} | awk '{print \$1}'"
+    eval ${tmp_command}
+}
+
 #メインの第2引数と第三引数を見てmodeとprojectをセットする
 #getOption $2 $3
 function getOption(){
-    if [ -n "$1" ] && [ -z "$2" ]; then
-        mode="cdwkdir_move"
-        project_name=$1
-    elif [ -n "$1" ] && [ -n "$2" ]; then
-        case "$1" in
-            "add"       )
-                if [ -n "$3" ];then
-                    mode="cdwkdir_add"
-                    project_name=$2
-                    project_path=$3
-                fi
-                ;;
-            "delete"    )
+    case "$1" in
+        "mv"        )
+            if [ -n $2 ];then
+                mode="cdwkdir_move"
+                project_name=$2
+            fi
+            ;;
+        "add"       )
+            if [ -n "$2" ] && [ -n "$3" ];then
+                mode="cdwkdir_add"
+                project_name=$2
+                project_path=$3
+            fi
+            ;;
+        "delete"    )
+            if [ -n "$2" ];then
                 mode="cdwkdir_delete"
                 project_name=$2
-                ;;
-        esac
-    fi
+            fi
+            ;;
+        "list"      )
+            mode="cdwkdir_list"
+    esac
     if [ -n "${mode}" ]; then
         return 0
     else
+        error="${1}モードは存在しません"
         return 1
     fi
 }
@@ -178,3 +191,4 @@ unset -f cdwkdir_lock
 unset -f cdwkdir_move
 unset -f cdwkdir_add
 unset -f cdwkdir_delete
+unset -f cdwkdir_list

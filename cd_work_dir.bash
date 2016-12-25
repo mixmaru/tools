@@ -133,16 +133,15 @@ function getOption(){
 
 #排他ロック
 lock ${SCRIPT_FILE}
-
-#設定ファイル等がなければ作成する
-if [ ! -d  ${WORK_DIR} ];then
-    mkdir ${WORK_DIR}
-fi
-if [ ! -e ${PROJECT_LIST_FILE} ]; then
-    touch ${PROJECT_LIST_FILE}
-fi
-
 if [ $? -eq 0 ]; then
+    #設定ファイル等がなければ作成する
+    if [ ! -d  ${WORK_DIR} ];then
+        mkdir ${WORK_DIR}
+    fi
+    if [ ! -e ${PROJECT_LIST_FILE} ]; then
+        touch ${PROJECT_LIST_FILE}
+    fi
+
     #引数からmodeとprojectを取得。エラーならerrorにメッセージを挿入
     getOption $2 $3 $4
     if [ $? -eq 0 ];then

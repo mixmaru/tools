@@ -31,3 +31,18 @@ cdwkdir list
 .bashrcに
 alias cdwkdir='. /some_dir/cd_work_dir.bash /some_dir/cd_work_dir.bash'
 を記入して使う
+
+##cd_work_dir_suggest.bash
+上記のcdwkdirコマンドのtab補完スクリプト
+###[設定方法]  
+このファイルをダウンロードして配置し、  
+~/.bashrc 内でsource でファイルを読み込む。  
+
+※cdwkdirとして使えるようにエイリアス設定を行っている前提となっている
+
+例：
+~/.bashrc 内に以下一行を追加  
+source /任意のディレクトリ/cd_work_dir_suggest.bash
+
+ターミナルで以下コマンドを叩く  
+source ~/.bashrc

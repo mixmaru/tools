@@ -36,7 +36,7 @@ SCRIPT_FILE=${SCRIPT_DIR}cd_work_dir.bash
 #ロック用ファイル
 LOCK_FILE=${SCRIPT_DIR}.cdwkdirlock
 #設定ファイルディレクトリ
-WORK_DIR=${SCRIPT_DIR}.cdwkdir/
+WORK_DIR=~/.cdwkdir/
 #設定ファイル
 PROJECT_LIST_FILE=${WORK_DIR}project_list
 #一時保存ファイル

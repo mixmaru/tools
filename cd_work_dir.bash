@@ -89,7 +89,14 @@ function cdwkdir_add(){
     if [ ${#result[@]} -eq 0 ];then
         #追加処理
         #相対パスを絶対パスに変換して追記
-        local path=$(cd ${project_path}; pwd)/
+        local path=$(cd ${project_path} && pwd)
+        if [ -z "${path}" ]; then
+            error="${project_path}は存在しません"
+            return 1
+        elif [ "${path}" != "/" ]; then
+            #末は/をつけておく
+            path="${path}/"
+        fi
         echo "${project_name} ${path}" >> ${PROJECT_LIST_FILE}
         return 0
     else

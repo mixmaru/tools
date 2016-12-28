@@ -68,10 +68,10 @@ function cdwkdir_move(){
 
     #行数が1なら正常。そうでないなら異常なので処理終了
     if [ ${count} -eq 0 ]; then
-        error="${project_name}の設定は存在しません"
+        error="プロジェクト【${project_name}】は存在しません"
         return 1
     elif [ ${count} -ge 2 ]; then
-        error="${project_name}の設定が複数あります。${PROJECT_LIST_FILE} を確認してください"
+        error="プロジェクト【${project_name}】の設定が複数あります。${PROJECT_LIST_FILE} を確認してください"
         return 1
     fi
 
@@ -89,7 +89,14 @@ function cdwkdir_add(){
     if [ ${#result[@]} -eq 0 ];then
         #追加処理
         #相対パスを絶対パスに変換して追記
-        local path=$(cd ${project_path}; pwd)/
+        local path=$(cd ${project_path} && pwd)
+        if [ -z "${path}" ]; then
+            error="${project_path}は存在しません"
+            return 1
+        elif [ "${path}" != "/" ]; then
+            #末は/をつけておく
+            path="${path}/"
+        fi
         echo "${project_name} ${path}" >> ${PROJECT_LIST_FILE}
         return 0
     else
@@ -113,7 +120,7 @@ function cdwkdir_delete(){
         rm ${PROJECT_TMP_FILE}
         return 0
     else
-        error="${project_name}は存在しません"
+        error="プロジェクト【${project_name}】は存在しません"
         rm ${PROJECT_TMP_FILE}
         return 1
     fi

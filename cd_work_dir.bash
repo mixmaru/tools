@@ -28,6 +28,7 @@ TMP_CD_WORK_DIR_mode=${mode}
 TMP_CD_WORK_DIR_project_name=${project_name}
 TMP_CD_WORK_DIR_project_path=${project_path}
 TMP_CD_WORK_DIR_error=${error}
+TMP_CD_WORK_DIR_dsp_usage_flag=${dsp_usage_flag}
 
 #使用するファイルのパスを用意
 #スクリプトがあるディレクトリ
@@ -47,6 +48,7 @@ mode=
 project_name=
 project_path=
 error=()
+dsp_usage_flag=0
 
 #関数の定義
 #usage表示
@@ -143,26 +145,49 @@ function cdwkdir_list(){
 }
 
 #メインの第2引数と第三引数を見てmodeとprojectをセットする
-#getOption $2 $3
+#getOption mode project_name dir_path
 function getOption(){
+    local exist_error=0
     case "$1" in
         "mv"        )
-            if [ -n $2 ];then
+            if [ -z $2 ];then
+                error+=("プロジェクト名を指定してください");
+                exist_error=1
+            fi
+            if [ ${exist_error} -eq 0 ];then
                 mode="cdwkdir_move"
                 project_name=$2
+            else
+                dsp_usage_flag=1
             fi
             ;;
         "add"       )
-            if [ -n "$2" ] && [ -n "$3" ];then
+            if [ -z "$2" ];then
+                error+=("プロジェクト名を指定してください");
+                exist_error=1
+            fi
+            if [ -z "$3" ];then
+                error+=("ディレクトリパスを指定してください");
+                exist_error=1
+            fi
+            if [ ${exist_error} -eq 0 ];then
                 mode="cdwkdir_add"
                 project_name=$2
                 project_path=$3
+            else
+                dsp_usage_flag=1
             fi
             ;;
         "delete"    )
-            if [ -n "$2" ];then
+            if [ -z "$2" ];then
+                error+=("プロジェクト名を指定してください");
+                exist_error=1
+            fi
+            if [ ${exist_error} -eq 0 ];then
                 mode="cdwkdir_delete"
                 project_name=$2
+            else
+                dsp_usage_flag=1
             fi
             ;;
         "list"      )
@@ -171,7 +196,7 @@ function getOption(){
     if [ -n "${mode}" ]; then
         return 0
     else
-        cdwkdir_usage
+        dsp_usage_flag=1
         return 1
     fi
 }
@@ -200,6 +225,11 @@ if [ $? -eq 0 ]; then
         echo ${message}
     done
 
+    #usage表示
+    if [ ${dsp_usage_flag} -ne 0 ];then
+        cdwkdir_usage
+    fi
+
     #ロック開放
     rm -f ${LOCK_FILE}
 else
@@ -217,6 +247,7 @@ mode=${TMP_CD_WORK_DIR_mode}
 project_name=${TMP_CD_WORK_DIR_project_name}
 project_path=${TMP_CD_WORK_DIR_project_path}
 error=${TMP_CD_WORK_DIR_error}
+dsp_usage_flag=${TMP_CD_WORK_DIR_dsp_usage_flag}
 
 #定義関数の削除
 unset -f cdwkdir_lock

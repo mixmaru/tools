@@ -28,6 +28,7 @@ TMP_CD_WORK_DIR_mode=${mode}
 TMP_CD_WORK_DIR_project_name=${project_name}
 TMP_CD_WORK_DIR_project_path=${project_path}
 TMP_CD_WORK_DIR_error=${error}
+TMP_CD_WORK_DIR_dsp_usage_flag=${dsp_usage_flag}
 
 #使用するファイルのパスを用意
 #スクリプトがあるディレクトリ
@@ -46,9 +47,20 @@ PROJECT_TMP_FILE=${WORK_DIR}.project_list_tmp
 mode=
 project_name=
 project_path=
-error=
+error=()
+dsp_usage_flag=0
 
 #関数の定義
+#usage表示
+function cdwkdir_usage(){
+cat <<_EOT_
+Usage:
+  mv        project_name                projectのディレクトリへ移動する
+  add       project_name dir_path       プロジェクト名をproject_name、ディレクトリパスをdir_pathとして新規追加する
+  delete    project_name                projectを削除する
+  list                                  登録されているproject一覧を表示する
+_EOT_
+}
 #排他ロック。参考）http://qiita.com/hidetzu/items/11f92f941efbb182f757
 function cdwkdir_lock(){
     local is_lock="no"
@@ -68,10 +80,10 @@ function cdwkdir_move(){
 
     #行数が1なら正常。そうでないなら異常なので処理終了
     if [ ${count} -eq 0 ]; then
-        error="プロジェクト【${project_name}】は存在しません"
+        error+=("プロジェクト【${project_name}】は存在しません")
         return 1
     elif [ ${count} -ge 2 ]; then
-        error="プロジェクト【${project_name}】の設定が複数あります。${PROJECT_LIST_FILE} を確認してください"
+        error+=("プロジェクト【${project_name}】の設定が複数あります。${PROJECT_LIST_FILE} を確認してください")
         return 1
     fi
 
@@ -100,7 +112,7 @@ function cdwkdir_add(){
         echo "${project_name} ${path}" >> ${PROJECT_LIST_FILE}
         return 0
     else
-        error="すでに${project_name}が存在します"
+        error+=("すでに${project_name}が存在します")
         return 1
     fi
 }
@@ -120,7 +132,7 @@ function cdwkdir_delete(){
         rm ${PROJECT_TMP_FILE}
         return 0
     else
-        error="プロジェクト【${project_name}】は存在しません"
+        error+=("プロジェクト【${project_name}】は存在しません")
         rm ${PROJECT_TMP_FILE}
         return 1
     fi
@@ -133,26 +145,49 @@ function cdwkdir_list(){
 }
 
 #メインの第2引数と第三引数を見てmodeとprojectをセットする
-#getOption $2 $3
+#getOption mode project_name dir_path
 function getOption(){
+    local exist_error=0
     case "$1" in
         "mv"        )
-            if [ -n $2 ];then
+            if [ -z $2 ];then
+                error+=("プロジェクト名を指定してください");
+                exist_error=1
+            fi
+            if [ ${exist_error} -eq 0 ];then
                 mode="cdwkdir_move"
                 project_name=$2
+            else
+                dsp_usage_flag=1
             fi
             ;;
         "add"       )
-            if [ -n "$2" ] && [ -n "$3" ];then
+            if [ -z "$2" ];then
+                error+=("プロジェクト名を指定してください");
+                exist_error=1
+            fi
+            if [ -z "$3" ];then
+                error+=("ディレクトリパスを指定してください");
+                exist_error=1
+            fi
+            if [ ${exist_error} -eq 0 ];then
                 mode="cdwkdir_add"
                 project_name=$2
                 project_path=$3
+            else
+                dsp_usage_flag=1
             fi
             ;;
         "delete"    )
-            if [ -n "$2" ];then
+            if [ -z "$2" ];then
+                error+=("プロジェクト名を指定してください");
+                exist_error=1
+            fi
+            if [ ${exist_error} -eq 0 ];then
                 mode="cdwkdir_delete"
                 project_name=$2
+            else
+                dsp_usage_flag=1
             fi
             ;;
         "list"      )
@@ -161,7 +196,7 @@ function getOption(){
     if [ -n "${mode}" ]; then
         return 0
     else
-        error="${1}モードは存在しません"
+        dsp_usage_flag=1
         return 1
     fi
 }
@@ -185,8 +220,14 @@ if [ $? -eq 0 ]; then
     fi
 
     #エラーがあればメッセージを出す
-    if [ -n "${error}" ]; then
-        echo ${error}
+    for message in ${error[@]}
+    do
+        echo ${message}
+    done
+
+    #usage表示
+    if [ ${dsp_usage_flag} -ne 0 ];then
+        cdwkdir_usage
     fi
 
     #ロック開放
@@ -206,6 +247,7 @@ mode=${TMP_CD_WORK_DIR_mode}
 project_name=${TMP_CD_WORK_DIR_project_name}
 project_path=${TMP_CD_WORK_DIR_project_path}
 error=${TMP_CD_WORK_DIR_error}
+dsp_usage_flag=${TMP_CD_WORK_DIR_dsp_usage_flag}
 
 #定義関数の削除
 unset -f cdwkdir_lock
@@ -213,3 +255,4 @@ unset -f cdwkdir_move
 unset -f cdwkdir_add
 unset -f cdwkdir_delete
 unset -f cdwkdir_list
+unset -f cdwkdir_usage

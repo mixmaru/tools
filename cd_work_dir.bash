@@ -49,6 +49,16 @@ project_path=
 error=
 
 #関数の定義
+#usage表示
+function cdwkdir_usage(){
+cat <<_EOT_
+Usage:
+  mv        project_name                projectのディレクトリへ移動する
+  add       project_name dir_path       プロジェクト名をproject_name、ディレクトリパスをdir_pathとして新規追加する
+  delete    project_name                projectを削除する
+  list                                  登録されているproject一覧を表示する
+_EOT_
+}
 #排他ロック。参考）http://qiita.com/hidetzu/items/11f92f941efbb182f757
 function cdwkdir_lock(){
     local is_lock="no"
@@ -161,7 +171,7 @@ function getOption(){
     if [ -n "${mode}" ]; then
         return 0
     else
-        error="${1}モードは存在しません"
+        cdwkdir_usage
         return 1
     fi
 }
@@ -213,3 +223,4 @@ unset -f cdwkdir_move
 unset -f cdwkdir_add
 unset -f cdwkdir_delete
 unset -f cdwkdir_list
+unset -f cdwkdir_usage

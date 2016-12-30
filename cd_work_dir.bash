@@ -46,7 +46,7 @@ PROJECT_TMP_FILE=${WORK_DIR}.project_list_tmp
 mode=
 project_name=
 project_path=
-error=
+error=()
 
 #関数の定義
 #usage表示
@@ -78,10 +78,10 @@ function cdwkdir_move(){
 
     #行数が1なら正常。そうでないなら異常なので処理終了
     if [ ${count} -eq 0 ]; then
-        error="プロジェクト【${project_name}】は存在しません"
+        error+=("プロジェクト【${project_name}】は存在しません")
         return 1
     elif [ ${count} -ge 2 ]; then
-        error="プロジェクト【${project_name}】の設定が複数あります。${PROJECT_LIST_FILE} を確認してください"
+        error+=("プロジェクト【${project_name}】の設定が複数あります。${PROJECT_LIST_FILE} を確認してください")
         return 1
     fi
 
@@ -110,7 +110,7 @@ function cdwkdir_add(){
         echo "${project_name} ${path}" >> ${PROJECT_LIST_FILE}
         return 0
     else
-        error="すでに${project_name}が存在します"
+        error+=("すでに${project_name}が存在します")
         return 1
     fi
 }
@@ -130,7 +130,7 @@ function cdwkdir_delete(){
         rm ${PROJECT_TMP_FILE}
         return 0
     else
-        error="プロジェクト【${project_name}】は存在しません"
+        error+=("プロジェクト【${project_name}】は存在しません")
         rm ${PROJECT_TMP_FILE}
         return 1
     fi
@@ -195,9 +195,10 @@ if [ $? -eq 0 ]; then
     fi
 
     #エラーがあればメッセージを出す
-    if [ -n "${error}" ]; then
-        echo ${error}
-    fi
+    for message in ${error[@]}
+    do
+        echo ${message}
+    done
 
     #ロック開放
     rm -f ${LOCK_FILE}

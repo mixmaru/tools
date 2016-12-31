@@ -34,6 +34,7 @@ TMP_CD_WORK_DIR_dsp_usage_flag=${dsp_usage_flag}
 #スクリプトがあるディレクトリ
 SCRIPT_DIR=$(cd $(dirname $1) && pwd)/
 SCRIPT_FILE=${SCRIPT_DIR}cd_work_dir.bash
+SCRIPT_FUNCTIONS_FILE=${SCRIPT_DIR}cd_work_dir_functions.bash
 #ロック用ファイル
 LOCK_FILE=${SCRIPT_DIR}.cdwkdirlock
 #設定ファイルディレクトリ
@@ -44,165 +45,18 @@ PROJECT_LIST_FILE=${WORK_DIR}project_list
 PROJECT_TMP_FILE=${WORK_DIR}.project_list_tmp
 
 #使用する変数
-mode=
-project_name=
-project_path=
+mode=$2
+project_name=$3
+project_path=$4
 error=()
 dsp_usage_flag=0
 
 #関数の定義
-#usage表示
-function cdwkdir_usage(){
-cat <<_EOT_
-Usage:
-  mv        project_name                projectのディレクトリへ移動する
-  add       project_name dir_path       プロジェクト名をproject_name、ディレクトリパスをdir_pathとして新規追加する
-  delete    project_name                projectを削除する
-  list                                  登録されているproject一覧を表示する
-_EOT_
-}
-#排他ロック。参考）http://qiita.com/hidetzu/items/11f92f941efbb182f757
-function cdwkdir_lock(){
-    local is_lock="no"
-    ln -s ${SCRIPT_FILE} ${LOCK_FILE} 2> /dev/null || is_lock="yes"
-    if [ ${is_lock} = "yes" ]; then
-        return 1
-    else
-        return 0
-    fi
-}
+source ${SCRIPT_FUNCTIONS_FILE}
 
-#カレントディレクトリの移動
-function cdwkdir_move(){
-    #指定プロジェクトの行数を取得
-    local count_command="cat ${PROJECT_LIST_FILE} | awk 'BEGIN{count=0} \$1==\"${project_name}\"{count+=1} END{print count}'"
-    local count=$(eval ${count_command})
-
-    #行数が1なら正常。そうでないなら異常なので処理終了
-    if [ ${count} -eq 0 ]; then
-        error+=("プロジェクト【${project_name}】は存在しません")
-        return 1
-    elif [ ${count} -ge 2 ]; then
-        error+=("プロジェクト【${project_name}】の設定が複数あります。${PROJECT_LIST_FILE} を確認してください")
-        return 1
-    fi
-
-    #パスを取り出す
-    local path_command="cat ${PROJECT_LIST_FILE} | awk '\$1==\"${project_name}\"{print \$2}'"
-    local target_path=$(eval ${path_command})
-    cd ${target_path}
-}
-
-#プロジェクトパスデータの追加
-function cdwkdir_add(){
-    #存在しないかチェック
-    local tmp_command="cat ${PROJECT_LIST_FILE} | awk '\$1==\"${project_name}\"{print \$1}'"
-    local result=($(eval ${tmp_command}))
-    if [ ${#result[@]} -eq 0 ];then
-        #追加処理
-        #相対パスを絶対パスに変換して追記
-        local path=$(cd ${project_path} && pwd)
-        if [ -z "${path}" ]; then
-            error="${project_path}は存在しません"
-            return 1
-        elif [ "${path}" != "/" ]; then
-            #末は/をつけておく
-            path="${path}/"
-        fi
-        echo "${project_name} ${path}" >> ${PROJECT_LIST_FILE}
-        return 0
-    else
-        error+=("すでに${project_name}が存在します")
-        return 1
-    fi
-}
-
-#プロジェクト削除 delete プロジェクト名
-function cdwkdir_delete(){
-    local tmp_command="cat ${PROJECT_LIST_FILE} | awk '\$1!=\"${project_name}\"{print \$0}'"
-
-    #指定プロジェクトを除去した設定ファイルの一時ファイルを作成
-    eval ${tmp_command} > ${PROJECT_TMP_FILE}
-    #元ファイルと比較して、変更があれば元ファイルを上書きする
-    local tmp_command="diff ${PROJECT_LIST_FILE} ${PROJECT_TMP_FILE}"
-    local diff_res=$(eval ${tmp_command})
-
-    if [ -n "${diff_res}" ];then
-        cat ${PROJECT_TMP_FILE} > ${PROJECT_LIST_FILE}
-        rm ${PROJECT_TMP_FILE}
-        return 0
-    else
-        error+=("プロジェクト【${project_name}】は存在しません")
-        rm ${PROJECT_TMP_FILE}
-        return 1
-    fi
-}
-
-#プロジェクト一覧表示
-function cdwkdir_list(){
-    local tmp_command="cat ${PROJECT_LIST_FILE} | awk '{print \$1}'"
-    eval ${tmp_command}
-}
-
-#メインの第2引数と第三引数を見てmodeとprojectをセットする
-#getOption mode project_name dir_path
-function getOption(){
-    local exist_error=0
-    case "$1" in
-        "mv"        )
-            if [ -z $2 ];then
-                error+=("プロジェクト名を指定してください");
-                exist_error=1
-            fi
-            if [ ${exist_error} -eq 0 ];then
-                mode="cdwkdir_move"
-                project_name=$2
-            else
-                dsp_usage_flag=1
-            fi
-            ;;
-        "add"       )
-            if [ -z "$2" ];then
-                error+=("プロジェクト名を指定してください");
-                exist_error=1
-            fi
-            if [ -z "$3" ];then
-                error+=("ディレクトリパスを指定してください");
-                exist_error=1
-            fi
-            if [ ${exist_error} -eq 0 ];then
-                mode="cdwkdir_add"
-                project_name=$2
-                project_path=$3
-            else
-                dsp_usage_flag=1
-            fi
-            ;;
-        "delete"    )
-            if [ -z "$2" ];then
-                error+=("プロジェクト名を指定してください");
-                exist_error=1
-            fi
-            if [ ${exist_error} -eq 0 ];then
-                mode="cdwkdir_delete"
-                project_name=$2
-            else
-                dsp_usage_flag=1
-            fi
-            ;;
-        "list"      )
-            mode="cdwkdir_list"
-    esac
-    if [ -n "${mode}" ]; then
-        return 0
-    else
-        dsp_usage_flag=1
-        return 1
-    fi
-}
 
 #排他ロック
-cdwkdir_lock
+cdwkdir_lock ${SCRIPT_FILE} ${LOCK_FILE}
 if [ $? -eq 0 ]; then
     #設定ファイル等がなければ作成する
     if [ ! -d  ${WORK_DIR} ];then
@@ -213,11 +67,48 @@ if [ $? -eq 0 ]; then
     fi
 
     #引数からmodeとprojectを取得。エラーならerrorにメッセージを挿入
-    getOption $2 $3 $4
-    if [ $? -eq 0 ];then
-        #メイン処理実行
-       ${mode}
-    fi
+    case "${mode}" in
+        "mv"        )
+            if [ -z ${project_name} ];then
+                error+=("プロジェクト名を指定してください");
+            fi
+            if [ ${#error[@]} -eq 0 ];then
+                cdwkdir_move ${project_name} ${PROJECT_LIST_FILE}
+            else
+                dsp_usage_flag=1
+            fi
+            ;;
+        "add"       )
+            if [ -z ${project_name} ];then
+                error+=("プロジェクト名を指定してください");
+            fi
+            if [ -z ${project_path} ];then
+                error+=("ディレクトリパスを指定してください");
+            fi
+            if [ ${#error[@]} -eq 0 ];then
+                cdwkdir_add ${project_name} ${project_path} ${PROJECT_LIST_FILE}
+            else
+                dsp_usage_flag=1
+            fi
+            ;;
+        "delete"    )
+            if [ -z ${project_name} ];then
+                error+=("プロジェクト名を指定してください");
+            fi
+            if [ ${#error[@]} -eq 0 ];then
+                cdwkdir_delete ${project_name} ${PROJECT_LIST_FILE} ${PROJECT_TMP_FILE}
+            else
+                dsp_usage_flag=1
+            fi
+            ;;
+        "list"      )
+            cdwkdir_list ${PROJECT_LIST_FILE}
+            ;;
+        * )
+            dsp_usage_flag=1
+            ;;
+
+    esac
 
     #エラーがあればメッセージを出す
     for message in ${error[@]}

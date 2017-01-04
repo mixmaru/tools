@@ -8,19 +8,12 @@ source ./cd_work_dir_functions.bash
 #各テスト、メイン関数
 
 function cdwkdir_usage_test(){
-    local expect=$(echoUsageText)
-    local result=$(cdwkdir_usage)
+    local test_command="cdwkdir_usage"
+    local expect_return=0
+    local expect_out=$(echoUsageText)
 
-    if [ "${expect}" = "${result}" ]; then
-        return 0
-    else
-        echo "result:"
-        echo "${result}"
-        echo
-        echo "expect:"
-        echo "${expect}"
-        return 1
-    fi
+    execTest "${test_command}" "${expect_return}" "${expect_out}"
+    return $?
 }
 
 function cdwkdir_lock_test(){
@@ -31,33 +24,33 @@ function cdwkdir_lock_test(){
 
     local error_flag=0
 
-    cdwkdir_lock
+    local test_command="cdwkdir_lock"
+    local expect_return=1
+    local expect_out=
+    execTest "${test_command}" "${expect_return}" "${expect_out}"
     tmp_result=$?
-    if [ ${tmp_result} -ne 1 ];then
-        echo "実行:cdwkdir_lock"
-        echo "expect:1"
-        echo "result:${tmp_result}"
+    if [ ${tmp_result} -ne 0 ];then
         error_flag=1
     fi
 
-    cdwkdir_lock ./cd_work_dir_test.bash ${lock_file}
+    local test_command="cdwkdir_lock ./cd_work_dir_test.bash ${lock_file}"
+    local expect_return=1
+    local expect_out=
+    local supply_text="ロックされている状態にて"
+    execTest "${test_command}" "${expect_return}" "${expect_out}" "${supply_text}"
     tmp_result=$?
-    if [ ${tmp_result} -ne 1 ];then
-        echo "ロックされている状態にて"
-        echo "実行:cdwkdir_lock ./cd_work_dir_test.bash ${lock_file}"
-        echo "expect:1"
-        echo "result:${tmp_result}"
+    if [ ${tmp_result} -ne 0 ];then
         error_flag=1
     fi
 
     rm -f ${lock_file}
-    cdwkdir_lock ./cd_work_dir_test.bash ${lock_file}
+    local test_command="cdwkdir_lock ./cd_work_dir_test.bash ${lock_file}"
+    local expect_return=0
+    local expect_out=
+    local supply_text="ロックされていない状態にて"
+    execTest "${test_command}" "${expect_return}" "${expect_out}" "${supply_text}"
     tmp_result=$?
     if [ ${tmp_result} -ne 0 ];then
-        echo "ロックされていない状態にて"
-        echo "実行:cdwkdir_lock ./cd_work_dir_test.bash ${lock_file}"
-        echo "expect:0"
-        echo "result:${tmp_result}"
         error_flag=1
     fi
 
@@ -91,7 +84,7 @@ function execTest(){
 
     #テスト実行
     #返り値の比較
-    local result_out=$(${command})
+    local result_out="$(${command})"; echo $?
     local result_return=$?
     if [ "${result_return}" != "${expect_return}" ]; then
         return=1
@@ -132,7 +125,7 @@ _EOT_"
     fi
 
     #結果出力
-    echo "${0} を実行 *****************"
+    echo "${1} を実行 *****************"
     echo "${support_text}"
     echo "${result_text}"
     for message in ${error_messages[@]}
@@ -154,35 +147,10 @@ _EOT_
 }
 
 
-#実験ここから
-    #前準備
-    tmp_result=0
-    lock_file="./lock_test"
-    error_flag=0
-
-    test_command="cdwkdir_lock"
-
-    execTest ${test_command} 1 "予測テキスト" "補足テキスト"
-    exit
-#実験ここまで
-
-
 echo "-----cdwkdir_usageテスト開始-----"
-cdwkdir_usage_error=$(cdwkdir_usage_test)
-if [ $? -eq 0 ]; then
-    echo "ok"
-else
-    echo "ng"
-    echo "${cdwkdir_usage_error}"
-fi
+cdwkdir_usage_test
 echo "-----cdwkdir_usageテスト完了-----"
 echo
 echo "-----cdwkdir_lockテスト開始-----"
-cdwkdir_lock_error=$(cdwkdir_lock_test)
-if [ $? -eq 0 ]; then
-    echo "ok"
-else
-    echo "ng"
-    echo "${cdwkdir_lock_error}"
-fi
+cdwkdir_lock_test
 echo "-----cdwkdir_lockテスト完了-----"

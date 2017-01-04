@@ -9,6 +9,7 @@ Usage:
   delete    project_name                projectを削除する
   list                                  登録されているproject一覧を表示する
 _EOT_
+return 0
 }
 
 #排他ロック。参考）http://qiita.com/hidetzu/items/11f92f941efbb182f757

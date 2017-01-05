@@ -83,9 +83,8 @@ function execTest(){
 
 
     #テスト実行
-    #返り値の比較※何故かlocal変数の定義と標準出力の代入を同時に行うと$?で結果がとれなかった
-    local result_out
-    result_out="$(${command})"
+    #返り値の比較
+    local result_out="$(${command})"; echo $?
     local result_return=$?
     if [ "${result_return}" != "${expect_return}" ]; then
         return=1

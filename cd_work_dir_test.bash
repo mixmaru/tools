@@ -8,63 +8,48 @@ source ./cd_work_dir_functions.bash
 #各テスト、メイン関数
 
 function cdwkdir_usage_test(){
-    #テスト設定
     local test_command="cdwkdir_usage"
     local expect_return=0
     local expect_out=$(echoUsageText)
-    #テスト実行
+
     execTest "${test_command}" "${expect_return}" "${expect_out}"
     return $?
 }
 
 function cdwkdir_lock_test(){
-    #使用変数定義
-    local lock_file="./lock_test"
-    local tmp_result=0
-    local =0
-
     #前準備
+    local tmp_result=0
+    local lock_file="./lock_test"
     touch ${lock_file}
 
-    #引数不足テスト
-    #テスト設定
+    local error_flag=0
+
     local test_command="cdwkdir_lock"
     local expect_return=1
     local expect_out=
-    #テスト実行
     execTest "${test_command}" "${expect_return}" "${expect_out}"
     tmp_result=$?
-    #テスト結果判定
     if [ ${tmp_result} -ne 0 ];then
         error_flag=1
     fi
 
-    #ロック状態でロックを取得しようとする
-    #テスト設定
     local test_command="cdwkdir_lock ./cd_work_dir_test.bash ${lock_file}"
     local expect_return=1
     local expect_out=
     local supply_text="ロックされている状態にて"
-    #テスト実行
     execTest "${test_command}" "${expect_return}" "${expect_out}" "${supply_text}"
     tmp_result=$?
-    #テスト結果判定
     if [ ${tmp_result} -ne 0 ];then
         error_flag=1
     fi
 
-    #正常にロックを取得できる
-    #前準備
     rm -f ${lock_file}
-    #テスト設定
     local test_command="cdwkdir_lock ./cd_work_dir_test.bash ${lock_file}"
     local expect_return=0
     local expect_out=
     local supply_text="ロックされていない状態にて"
-    #テスト実行
     execTest "${test_command}" "${expect_return}" "${expect_out}" "${supply_text}"
     tmp_result=$?
-    #テスト結果判定
     if [ ${tmp_result} -ne 0 ];then
         error_flag=1
     fi

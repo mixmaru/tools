@@ -3,18 +3,14 @@
 #関数の読み込み
 source ./cd_work_dir_functions.bash
 
-function echoUsageText(){
-    cat <<_EOT_
+function cdwkdir_usage_test(){
+    local expect=$(cat <<_EOT_
 Usage:
   mv        project_name                projectのディレクトリへ移動する
   add       project_name dir_path       プロジェクト名をproject_name、ディレクトリパスをdir_pathとして新規追加する
   delete    project_name                projectを削除する
   list                                  登録されているproject一覧を表示する
-_EOT_
-}
-
-function cdwkdir_usage_test(){
-    local expect=$(echoUsageText)
+_EOT_)
 
     local result=$(cdwkdir_usage)
 

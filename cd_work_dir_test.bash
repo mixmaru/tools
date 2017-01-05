@@ -15,6 +15,7 @@ _EOT_
 
 function cdwkdir_usage_test(){
     local expect=$(echoUsageText)
+
     local result=$(cdwkdir_usage)
 
     if [ "${expect}" = "${result}" ]; then
@@ -29,54 +30,6 @@ function cdwkdir_usage_test(){
     fi
 }
 
-function cdwkdir_lock_test(){
-    #前準備
-    local tmp_result=0
-    local lock_file="./lock_test"
-    touch ${lock_file}
-
-    local error_flag=0
-
-    cdwkdir_lock
-    tmp_result=$?
-    if [ ${tmp_result} -ne 1 ];then
-        echo "実行:cdwkdir_lock"
-        echo "expect:1"
-        echo "result:${tmp_result}"
-        error_flag=1
-    fi
-
-    cdwkdir_lock ./cd_work_dir_test.bash ${lock_file}
-    tmp_result=$?
-    if [ ${tmp_result} -ne 1 ];then
-        echo "ロックされている状態にて"
-        echo "実行:cdwkdir_lock ./cd_work_dir_test.bash ${lock_file}"
-        echo "expect:1"
-        echo "result:${tmp_result}"
-        error_flag=1
-    fi
-
-    rm -f ${lock_file}
-    cdwkdir_lock ./cd_work_dir_test.bash ${lock_file}
-    tmp_result=$?
-    if [ ${tmp_result} -ne 0 ];then
-        echo "ロックされていない状態にて"
-        echo "実行:cdwkdir_lock ./cd_work_dir_test.bash ${lock_file}"
-        echo "expect:0"
-        echo "result:${tmp_result}"
-        error_flag=1
-    fi
-
-    #後処理
-    rm -f ${lock_file}
-
-    if [ ${error_flag} -eq 0 ]; then
-        return 0
-    else
-        return 1
-    fi
-}
-
 
 echo "-----cdwkdir_usageテスト開始-----"
 cdwkdir_usage_error=$(cdwkdir_usage_test)
@@ -87,15 +40,5 @@ else
     echo "${cdwkdir_usage_error}"
 fi
 echo "-----cdwkdir_usageテスト完了-----"
-echo
-echo "-----cdwkdir_lockテスト開始-----"
-cdwkdir_lock_error=$(cdwkdir_lock_test)
-if [ $? -eq 0 ]; then
-    echo "ok"
-else
-    echo "ng"
-    echo "${cdwkdir_lock_error}"
-fi
-echo "-----cdwkdir_lockテスト完了-----"
 
 echo テスト完了
